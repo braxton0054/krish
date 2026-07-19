@@ -51,7 +51,7 @@
       <div id="transcript-panel">
         <div id="transcript-user" class="transcript-line user-line">
           <span class="prompt-glyph">&gt;</span>
-          <span id="user-text" class="glow-text">Awaiting input...</span>
+          <span id="user-text" class="glow-text">SYSTEM READY</span>
         </div>
         <div id="transcript-krish" class="transcript-line krish-line" style="display:none">
           <span class="prompt-glyph krish-glyph">◆</span>
@@ -66,9 +66,9 @@
       <div id="mic-container">
         <div id="wake-indicator" class="wake-indicator" style="display:none">
           <span class="wake-dot"></span>
-          <span class="wake-text">LISTENING FOR ACTIVATION...</span>
+          <span class="wake-text">AWAITING ACTIVATION...</span>
         </div>
-        <button id="mic-btn" class="mic-btn" title="Hold to talk">
+        <button id="mic-btn" class="mic-btn" title="Tap to activate">
           <div class="mic-ring-1"></div>
           <div class="mic-ring-2"></div>
           <div class="mic-ring-3"></div>
@@ -80,15 +80,15 @@
             </svg>
           </div>
         </button>
-        <span id="mic-hint" class="mic-hint">HOLD TO TALK</span>
+        <span id="mic-hint" class="mic-hint">TAP TO ACTIVATE</span>
       </div>
     </main>
 
     <footer id="hud-footer">
       <span class="footer-item">SYS::ONLINE</span>
-      <span class="footer-item" id="footer-model">MODEL:—</span>
-      <span class="footer-item" id="footer-latency">LATENCY:—</span>
-      <span class="footer-item" id="footer-audio">AUDIO:—</span>
+      <span class="footer-item" id="footer-model">MODEL: —</span>
+      <span class="footer-item" id="footer-latency">LATENCY: —</span>
+      <span class="footer-item" id="footer-audio">AUDIO: —</span>
     </footer>
   </div>
 

@@ -126,8 +126,8 @@ class MatrixRain {
         const isHead = j === 0;
         ctx.font = `${isHead ? 14 : 12}px "Share Tech Mono", monospace`;
         ctx.fillStyle = isHead
-          ? `rgba(200, 255, 200, ${alpha * 1.5})`
-          : `rgba(0, 255, 65, ${alpha})`;
+          ? `rgba(180, 245, 255, ${alpha * 1.5})`
+          : `rgba(0, 217, 255, ${alpha})`;
         ctx.fillText(
           col.chars[Math.floor((time * 0.001 * col.speed + j) % col.chars.length)],
           x, y
@@ -174,16 +174,16 @@ class ArcReactor {
     const baseR = Math.min(this.w, this.h) * 0.18;
 
     const isActive = currentState !== "idle";
-    const primaryColor = currentState === "thinking" ? "#00d4ff" : "#00ff41";
-    const secondaryColor = currentState === "thinking" ? "#00ff41" : "#00d4ff";
+    const primaryColor = "#00d9ff";
+    const secondaryColor = "#0099ff";
 
     const pulse = 0.85 + 0.15 * Math.sin(this.time * (isActive ? 3 : 1.2));
     const rotSpeed = isActive ? 1.5 : 0.4;
 
     // Outer glow
     const grad = ctx.createRadialGradient(cx, cy, baseR * 0.2, cx, cy, baseR * 1.6);
-    grad.addColorStop(0, `rgba(0, 255, 65, ${isActive ? 0.06 : 0.02})`);
-    grad.addColorStop(0.5, `rgba(0, 212, 255, ${currentState === "thinking" ? 0.05 : 0.01})`);
+    grad.addColorStop(0, `rgba(0, 217, 255, ${isActive ? 0.06 : 0.02})`);
+    grad.addColorStop(0.5, `rgba(0, 153, 255, ${currentState === "thinking" ? 0.05 : 0.01})`);
     grad.addColorStop(1, "transparent");
     ctx.fillStyle = grad;
     ctx.beginPath();
@@ -233,8 +233,8 @@ class ArcReactor {
 
     // Center glow
     const cg = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseR * 0.4);
-    cg.addColorStop(0, isActive ? "rgba(0, 255, 65, 0.3)" : "rgba(0, 255, 65, 0.08)");
-    cg.addColorStop(0.5, isActive ? "rgba(0, 212, 255, 0.15)" : "transparent");
+    cg.addColorStop(0, isActive ? "rgba(0, 217, 255, 0.3)" : "rgba(0, 217, 255, 0.08)");
+    cg.addColorStop(0.5, isActive ? "rgba(0, 153, 255, 0.15)" : "transparent");
     cg.addColorStop(1, "transparent");
     ctx.fillStyle = cg;
     ctx.beginPath();
@@ -783,29 +783,45 @@ function getMicAmplitude(analyser) {
 function setStatus(newState) {
   state = newState;
   statusDot.className = "status-dot " + newState;
-  statusLabel.textContent = newState.toUpperCase().replace("_", " ");
-  if (newState === "wake_listening") {
-    statusLabel.textContent = "WAKE LISTENING";
-  }
-  footerAudio.textContent = `AUDIO:${newState.toUpperCase().slice(0, 4)}`;
+  const labelMap = {
+    idle: "IDLE",
+    listening: "SCANNING",
+    transcribing: "DECODING",
+    thinking: "PROCESSING",
+    speaking: "OUTPUT",
+    generating_speech: "SYNTHESIZING",
+    wake_listening: "WAKE LISTENING",
+  };
+  statusLabel.textContent = labelMap[newState] || newState.toUpperCase().replace("_", " ");
+  footerAudio.textContent = `AUDIO: ${newState.toUpperCase().slice(0, 4)}`;
 
   // Wake indicator visibility
   if (wakeIndicator) {
     wakeIndicator.style.display = newState === "wake_listening" ? "flex" : "none";
   }
 
+  // Mic button active state for sonar animation
+  if (micBtn) {
+    micBtn.classList.toggle("active", newState === "listening" || newState === "wake_listening");
+  }
+
   if (newState === "idle") {
-    micHint.textContent = ns("toggleMode") ? "CLICK TO TALK" : "HOLD TO TALK";
+    micHint.textContent = ns("toggleMode") ? "TAP TO ACTIVATE" : "HOLD TO TALK";
+  } else if (newState === "listening") {
+    micHint.textContent = "SCANNING...";
+  } else if (newState === "thinking") {
+    micHint.textContent = "PROCESSING...";
+  } else if (newState === "speaking") {
+    micHint.textContent = "RESPONDING";
   }
 }
 
 function setModelBadge(model) {
   currentModel = model;
-  const text = model === "thinking" ? "THINKING" : model === "fast" ? "FAST" : "—";
-  modelBadge.textContent = text;
-  modelBadge.style.color = model === "thinking" ? "var(--cyan)" : "var(--green)";
-  modelBadge.style.borderColor = model === "thinking" ? "var(--cyan-dark)" : "var(--green-dark)";
-  footerModel.textContent = `MODEL:${text}`;
+  modelBadge.textContent = model && model !== "—" ? model : "opencode (default)";
+  modelBadge.style.color = "var(--text-primary)";
+  modelBadge.style.borderColor = "rgba(0,217,255,0.2)";
+  footerModel.textContent = `MODEL: ${modelBadge.textContent}`;
 }
 
 function showToast(msg) {
@@ -905,7 +921,7 @@ function handleMessage(msg) {
 
     case "resume_wake_listen":
       setStatus("wake_listening");
-      userText.textContent = "Awaiting input...";
+      userText.textContent = "SYSTEM READY";
       krishLine.style.display = "none";
       break;
 
@@ -925,7 +941,7 @@ function handleMessage(msg) {
           if (state === "speaking") {
             if (wakeMode) {
               setStatus("wake_listening");
-              userText.textContent = "Awaiting input...";
+              userText.textContent = "SYSTEM READY";
               krishLine.style.display = "none";
             } else {
               setStatus("idle");
@@ -1036,7 +1052,7 @@ async function startWakeStreaming() {
   try {
     wakeStreamer = new WakeWordStreamer();
     setStatus("wake_listening");
-    userText.textContent = "Awaiting input...";
+    userText.textContent = "SYSTEM READY";
     ws.sendJson({
       type: "enter_wake_mode",
       sensitivity: parseFloat(cfg.wakeSensitivity || "0.5"),
@@ -1064,7 +1080,7 @@ function stopWakeStreaming() {
   ws.sendJson({ type: "exit_wake_mode" });
   micBtn.style.display = "flex";
   setStatus("idle");
-  userText.textContent = "Awaiting input...";
+  userText.textContent = "SYSTEM READY";
   showToast("WAKE WORD OFF");
 }
 

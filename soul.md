@@ -16,7 +16,8 @@
 - Voice agent: Krish (Faster-Whisper STT → Gemini Flash / OpenCode reasoning → Kokoro TTS)
 
 ## Conversation Log
-  - [2026-07-19 12:22] User: "Hello?" → Krish: "Hello there. Krish standing by. How can I assist you today? And may I ask your name?" [Gemini → OpenCode]
+  - [2026-07-19 15:06] User: "I said open code." → Krish: "You're already in opencode — this is the opencode CLI session. What would you like me to do?"
+  - [2026-07-19 15:02] User: "Helo" → Krish: "Hello! How can I help you?"
   - [2026-07-19 14:32] User: "So, can you test if you are thinking model is working that is the open code?" → Krish: "{'type': 'error', 'timestamp': 1784460675864, 'sessionID': 'ses_085db01c0ffeKIWWQFXRhcRyu4', 'error'"
   - [2026-07-19 14:30] User: "Hey, did you get me?" → Krish: "Hello, Braxton. Yes, I hear you loud and clear. How can I assist you today?" [Gemini → OpenCode]
   - [2026-07-19 14:10] User: "I think you are spelling my name wrong, it is b-r-a-x-t-o-n." → Krish: "My apologies, Braxton. Thank you for correcting me. I've updated my records. It's B-R-A-X-T-O-N. How" [Gemini → OpenCode]
