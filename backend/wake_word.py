@@ -96,6 +96,16 @@ class KeywordSpotter:
         wav = pcm_to_wav(pcm_bytes)
         logger.info(f"KW check: transcribing {len(pcm_bytes)} bytes of PCM")
 
+        # Debug dump: save first few checks to files
+        import os
+        dump_dir = "/tmp/kw_debug"
+        os.makedirs(dump_dir, exist_ok=True)
+        existing = len(os.listdir(dump_dir))
+        if existing < 5:
+            with open(f"{dump_dir}/kw_{existing:03d}.wav", "wb") as f:
+                f.write(wav)
+            logger.info(f"KW check: saved debug audio to {dump_dir}/kw_{existing:03d}.wav")
+
         try:
             text, _ = transcribe(wav, self.config)
         except Exception as e:
