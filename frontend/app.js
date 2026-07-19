@@ -401,7 +401,7 @@ class WakeWordStreamer {
   async start(onPcm) {
     this.onPcm = onPcm;
     this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true },
+      audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
     });
 
     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -420,8 +420,13 @@ class WakeWordStreamer {
     await this.audioContext.audioWorklet.addModule(workletUrl);
     console.log("[Krish] AudioWorklet module loaded");
 
-    this.processor = new AudioWorkletNode(this.audioContext, "wake-processor");
+    this.processor = new AudioWorkletNode(this.audioContext, "wake-processor", {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
+      outputChannelCount: [1],
+    });
     let pcmCount = 0;
+    let rmsSum = 0, rmsCount = 0;
     this.processor.port.onmessage = (event) => {
       if (!this.active) return;
       const pcmBuffer = event.data;
@@ -429,11 +434,22 @@ class WakeWordStreamer {
         this.onPcm(pcmBuffer);
         pcmCount++;
         if (pcmCount % 50 === 0) console.log(`[Krish] PCM chunks sent: ${pcmCount}`);
+        // Measure RMS for diagnostics
+        const int16 = new Int16Array(pcmBuffer);
+        let s = 0;
+        for (let i = 0; i < int16.length; i++) s += int16[i] * int16[i];
+        const rms = Math.sqrt(s / int16.length);
+        rmsSum += rms; rmsCount++;
+        if (pcmCount % 200 === 0) console.log(`[Krish] Avg PCM RMS: ${(rmsSum / rmsCount).toFixed(1)} (silence if ~0)`);
       }
     };
 
+    // Connect to a zero-gain node to avoid feedback while keeping graph alive
+    const gain = this.audioContext.createGain();
+    gain.gain.value = 0;
     this.source.connect(this.processor);
-    this.processor.connect(this.audioContext.destination);
+    this.processor.connect(gain);
+    gain.connect(this.audioContext.destination);
     this.active = true;
     console.log("[Krish] WakeWordStreamer active (AudioWorklet)");
   }

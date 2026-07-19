@@ -17,6 +17,9 @@
 
 ## Conversation Log
   - [2026-07-19 12:22] User: "Hello?" → Krish: "Hello there. Krish standing by. How can I assist you today? And may I ask your name?" [Gemini → OpenCode]
+  - [2026-07-19 14:10] User: "I think you are spelling my name wrong, it is b-r-a-x-t-o-n." → Krish: "My apologies, Braxton. Thank you for correcting me. I've updated my records. It's B-R-A-X-T-O-N. How" [Gemini → OpenCode]
+  - [2026-07-19 14:09] User: "Hello" → Krish: "Hello, Brakston. Krish standing by. How can I assist you today?" [Gemini → OpenCode]
+  - [2026-07-19 14:09] User: "Hallo!" → Krish: "Hello, Brakston. Krish standing by. How can I assist you today?" [Gemini → OpenCode]
   - [2026-07-19 13:37] User: "Hey, Chris." → Krish: "Hello, Brakston. It's Krish, spelled K-R-I-S-H. How can I assist you today?" [Gemini → OpenCode]
   - [2026-07-19 13:36] User: "Now, what do you see? I have shared some screen." → Krish: "Alright, Brakston, I see your screen now. It looks like you're in a terminal window, displaying what" [Gemini → OpenCode]
   - [2026-07-19 13:35] User: "What do you see?" → Krish: "Brakston, I don't see an image or screen capture at the moment. Are you trying to show me something?" [Gemini → OpenCode]

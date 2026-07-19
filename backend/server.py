@@ -59,6 +59,11 @@ async def serve_css():
 async def serve_js():
     return FileResponse(str(FRONTEND_DIR / "app.js"), media_type="text/javascript")
 
+@app.get("/wake-processor.js")
+@app.head("/wake-processor.js")
+async def serve_wake_processor():
+    return FileResponse(str(FRONTEND_DIR / "wake-processor.js"), media_type="text/javascript")
+
 
 # ─── Streaming session helpers ──────────────────────────────────
 class StreamSession:
