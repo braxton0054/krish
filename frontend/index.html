@@ -80,6 +80,13 @@
             </svg>
           </div>
         </button>
+        <button id="mute-btn" class="mute-btn" title="Mute / Unmute" style="display:none">
+          <svg viewBox="0 0 24 24" class="mute-icon" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M5 11a7 7 0 0 0 14 0"/>
+            <line x1="3" y1="3" x2="21" y2="21"/>
+          </svg>
+        </button>
         <span id="mic-hint" class="mic-hint">TAP TO ACTIVATE</span>
       </div>
     </main>
@@ -122,6 +129,16 @@
           <option value="am_adam">am_adam</option>
           <option value="am_michael">am_michael</option>
         </select>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">ALWAYS LISTENING</label>
+        <div class="toggle-row">
+          <span>Mic stays on (mute anytime)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfg-always-listen">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
       </div>
       <div class="setting-group">
         <label class="setting-label">WAKE WORD</label>

@@ -2,7 +2,8 @@
 const DEFAULTS = {
   voice: "af_heart",
   wakeWord: false,
-  toggleMode: true,
+  alwaysListen: true,
+  toggleMode: false,
   continuousMode: true,
   threshold: 0.5,
   wakeSensitivity: "0.5",
@@ -17,6 +18,7 @@ let latencyStart = 0;
 let conversationHistory = [];
 let wakeStreamer = null;
 let wakeMode = false;
+let micMuted = false;
 
 // ─── DOM refs ────────────────────────────────────────────────────
 const $ = (s) => document.querySelector(s);
@@ -33,6 +35,7 @@ const krishLine = $("#transcript-krish");
 const interimLine = $("#interim-line");
 const interimText = $("#interim-text");
 const micBtn = $("#mic-btn");
+const muteBtn = $("#mute-btn");
 const micHint = $("#mic-hint");
 const footerModel = $("#footer-model");
 const footerLatency = $("#footer-latency");
@@ -65,6 +68,7 @@ const btnVisionMode = $("#btn-vision-mode");
 const cfgFastModel = $("#cfg-fast-model");
 const cfgVoice = $("#cfg-voice");
 const cfgWakeWord = $("#cfg-wake-word");
+const cfgAlwaysListen = $("#cfg-always-listen");
 const cfgToggleMode = $("#cfg-toggle-mode");
 const cfgContinuous = $("#cfg-continuous");
 const cfgThreshold = $("#cfg-threshold");
@@ -836,6 +840,7 @@ function showToast(msg) {
 function ns(key) {
   if (key === "toggleMode") return cfg.toggleMode;
   if (key === "wakeWord") return cfg.wakeWord;
+  if (key === "alwaysListen") return cfg.alwaysListen;
   return cfg[key];
 }
 
@@ -860,6 +865,7 @@ function applySettingsToUI() {
   cfgFastModel.value = "opencode (default)";
   cfgVoice.value = cfg.voice;
   cfgWakeWord.checked = cfg.wakeWord;
+  cfgAlwaysListen.checked = cfg.alwaysListen;
   cfgToggleMode.checked = cfg.toggleMode;
   cfgContinuous.checked = cfg.continuousMode;
   cfgThreshold.value = cfg.threshold;
@@ -872,6 +878,7 @@ function applySettingsToUI() {
 function applySettingsFromUI() {
   cfg.voice = cfgVoice.value;
   cfg.wakeWord = cfgWakeWord.checked;
+  cfg.alwaysListen = cfgAlwaysListen.checked;
   cfg.toggleMode = cfgToggleMode.checked;
   cfg.continuousMode = cfgContinuous.checked;
   cfg.threshold = parseFloat(cfgThreshold.value);
@@ -1046,6 +1053,63 @@ async function stopRecording() {
   micHint.textContent = cfg.continuousMode ? "LISTENING..." : "CLICK TO TALK";
 }
 
+function stopAlwaysListening() {
+  if (isRecording) stopRecording();
+  micMuted = false;
+  muteBtn.style.display = "none";
+  muteBtn.classList.remove("muted");
+  micBtn.style.display = "flex";
+  micBtn.classList.remove("muted");
+  micHint.textContent = cfg.continuousMode ? "LISTENING..." : "CLICK TO TALK";
+}
+
+// ─── Always Listening Mode ─────────────────────────────────────
+async function startAlwaysListening() {
+  if (isRecording) return;
+  if (!micMuted) {
+    muteBtn.style.display = "flex";
+    micBtn.style.display = "none";
+  }
+  try {
+    recorder = new AudioRecorder();
+    ws.sendJson({ type: "audio_start" });
+    await recorder.start((chunk) => {
+      if (!micMuted) ws.sendAudioChunk(chunk);
+    });
+    isRecording = true;
+    micBtn.className = "mic-btn active";
+    micBtn.classList.toggle("muted", micMuted);
+    micHint.textContent = micMuted ? "MUTED — TAP TO UNMUTE" : "ALWAYS LISTENING";
+    setStatus("listening");
+    interimLine.style.display = "none";
+    if (cfg.continuousMode) {
+      recorder.startVAD(() => {
+        if (isRecording && !micMuted) stopRecording();
+      });
+    }
+  } catch (e) {
+    showToast("Mic access denied");
+    console.error(e);
+  }
+}
+
+function toggleMute() {
+  micMuted = !micMuted;
+  muteBtn.classList.toggle("muted", micMuted);
+  micBtn.classList.toggle("muted", micMuted);
+  if (micMuted) {
+    micHint.textContent = "MUTED — TAP TO UNMUTE";
+    setStatus("muted");
+  } else {
+    micHint.textContent = "ALWAYS LISTENING";
+    if (!isRecording) {
+      startAlwaysListening();
+    } else {
+      setStatus("listening");
+    }
+  }
+}
+
 // ─── Wake Word Mode ─────────────────────────────────────────────
 async function startWakeStreaming() {
   if (wakeStreamer) return;
@@ -1155,6 +1219,8 @@ function init() {
     showToast("CONNECTED");
     if (cfg.wakeWord) {
       setTimeout(() => startWakeStreaming(), 500);
+    } else if (cfg.alwaysListen) {
+      setTimeout(() => startAlwaysListening(), 500);
     } else {
       setStatus("idle");
     }
@@ -1174,6 +1240,8 @@ function init() {
         if (oldOnOpen) oldOnOpen();
         if (cfg.wakeWord) {
           setTimeout(() => startWakeStreaming(), 500);
+        } else if (cfg.alwaysListen) {
+          setTimeout(() => startAlwaysListening(), 500);
         }
         if (cfg.visionEnabled) {
           setTimeout(() => initVision(), 600);
@@ -1181,6 +1249,12 @@ function init() {
       };
     }, 3000);
   };
+
+  // Mute button (always-listen mode)
+  muteBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    toggleMute();
+  });
 
   // Mic button
   micBtn.addEventListener("mousedown", (e) => {
@@ -1259,13 +1333,20 @@ function init() {
   btnSaveSettings.addEventListener("click", () => {
     const wasWake = cfg.wakeWord;
     const wasVision = cfg.visionEnabled;
+    const wasAlways = cfg.alwaysListen;
     applySettingsFromUI();
     settingsPanel.classList.remove("open");
     showToast("SETTINGS SAVED");
     if (cfg.wakeWord && !wasWake) {
+      stopAlwaysListening();
       startWakeStreaming();
     } else if (!cfg.wakeWord && wasWake) {
       stopWakeStreaming();
+    }
+    if (!cfg.wakeWord && cfg.alwaysListen && !wasAlways) {
+      startAlwaysListening();
+    } else if (!cfg.wakeWord && !cfg.alwaysListen && wasAlways) {
+      stopAlwaysListening();
     }
     if (cfg.visionEnabled && !wasVision) {
       initVision();

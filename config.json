@@ -91,6 +91,6 @@
       "can you (help|show|tell|explain)",
       "what('s| is) the (best|difference|way)"
     ],
-    "complexity_threshold": 0.5
+    "complexity_threshold": 0.45
   }
 }

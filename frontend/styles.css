@@ -246,6 +246,45 @@ body {
   color: var(--text-secondary); text-shadow: var(--glow-sm);
 }
 
+/* Mute button (always-listen mode) */
+.mute-btn {
+  position: relative; width: 120px; height: 120px; display: none;
+  border: none; background: transparent; cursor: pointer;
+  align-items: center; justify-content: center;
+}
+.mute-btn .mic-ring-1, .mute-btn .mic-ring-2, .mute-btn .mic-ring-3 {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1px solid rgba(0, 217, 255, 0.3);
+}
+.mute-btn .mic-ring-1 { box-shadow: var(--glow-sm); animation: breathing 3.5s ease-in-out infinite; }
+.mute-btn .mic-ring-2 { inset: 14px; border-color: rgba(0, 217, 255, 0.2); animation: breathing 3.5s ease-in-out infinite 0.4s; }
+.mute-btn .mic-ring-3 { inset: 28px; border-color: rgba(0, 217, 255, 0.15); animation: breathing 3.5s ease-in-out infinite 0.8s; }
+.mute-btn .mic-ring-1::after, .mute-btn .mic-ring-2::after, .mute-btn .mic-ring-3::after {
+  content: ""; position: absolute; inset: -2px; border-radius: 50%;
+  border: 2px solid var(--accent-glow);
+  animation: sonar-ping 2s ease-out infinite;
+}
+.mute-btn .mic-ring-2::after { animation-delay: 0.6s; }
+.mute-btn .mic-ring-3::after { animation-delay: 1.2s; }
+.mute-btn .mic-inner {
+  position: relative; z-index: 2; width: 72px; height: 72px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle, rgba(0, 217, 255, 0.15), rgba(10, 14, 39, 0.9));
+  border: 2px solid var(--text-primary); box-shadow: var(--glow-md); transition: all 0.2s;
+}
+.mute-btn .mute-icon { width: 32px; height: 32px; color: var(--text-primary); }
+.mute-btn.muted .mic-inner {
+  background: radial-gradient(circle, rgba(255, 80, 80, 0.2), rgba(10, 14, 39, 0.9));
+  border-color: #ff5050; box-shadow: 0 0 16px rgba(255, 80, 80, 0.5);
+}
+.mute-btn.muted .mute-icon { color: #ff5050; }
+.mute-btn.muted .mic-ring-1, .mute-btn.muted .mic-ring-2, .mute-btn.muted .mic-ring-3 {
+  border-color: rgba(255, 80, 80, 0.4);
+}
+.mute-btn.muted .mic-ring-1::after, .mute-btn.muted .mic-ring-2::after, .mute-btn.muted .mic-ring-3::after {
+  border-color: #ff5050; animation: none;
+}
+
 /* ─── Footer ────────────────────────────────────────────────────── */
 #hud-footer {
   display: flex; gap: 24px; justify-content: center;
