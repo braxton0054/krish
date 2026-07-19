@@ -31,8 +31,8 @@
     "manual_ptt_enabled": true,
     "vad_silence_ms": 1500,
     "vad_threshold": 0.02,
-    "check_interval_ms": 400,
-    "min_buffer_ms": 1000
+    "check_interval_ms": 300,
+    "min_buffer_ms": 600
   },
   "gemini": {
     "enabled": true,

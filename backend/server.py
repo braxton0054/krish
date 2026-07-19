@@ -282,12 +282,14 @@ class WakeSession:
             if len(self._kw_ring) > self.spotter.min_samples * 3:
                 self._kw_ring = self._kw_ring[-self.spotter.min_samples * 2:]
             now = asyncio.get_event_loop().time()
-            if len(self._kw_ring) >= self.spotter.min_samples \
+            kw_len = len(self._kw_ring)
+            if kw_len >= self.spotter.min_samples \
                and now - self._last_check >= self.spotter.check_interval \
                and not self._processing:
                 self._last_check = now
                 self._processing = True
                 data = bytes(self._kw_ring)
+                logger.debug(f"KW check: {len(data)} bytes in ring")
                 hit = await asyncio.to_thread(self.spotter.check, data)
                 self._processing = False
                 if hit:
@@ -563,6 +565,8 @@ async def websocket_endpoint(ws: WebSocket):
                     await session.add_chunk(msg["bytes"])
                 elif not wake_session:
                     logger.debug(f"Received {len(msg['bytes'])} bytes but no wake_session active")
+                else:
+                    logger.warning(f"Received {len(msg['bytes'])} bytes — not routed (state={wake_session.state if wake_session else 'none'})")
 
     except WebSocketDisconnect:
         logger.info("WebSocket client disconnected")

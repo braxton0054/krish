@@ -93,17 +93,17 @@ class KeywordSpotter:
             logger.debug(f"KW check: buffer too small ({len(pcm_bytes)} < {self.min_samples})")
             return False
 
-        logger.debug(f"KW check: transcribing {len(pcm_bytes)} bytes")
         wav = pcm_to_wav(pcm_bytes)
+        logger.info(f"KW check: transcribing {len(pcm_bytes)} bytes of PCM")
 
         try:
             text, _ = transcribe(wav, self.config)
         except Exception as e:
-            logger.debug(f"KW check: transcribe failed: {e}")
+            logger.info(f"KW check: transcribe failed: {e}")
             return False
 
         text = text.strip()
-        logger.debug(f"KW check: whisper returned: {text!r}")
+        logger.info(f"KW check: whisper returned: {text!r}")
 
         if not text:
             return False
@@ -112,6 +112,7 @@ class KeywordSpotter:
             logger.info(f"Wake word detected (fuzzy) in: {text!r}")
             return True
 
+        logger.info(f"KW check: no match for keyword '{self.keyword}'")
         return False
 
 

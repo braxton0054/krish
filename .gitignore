@@ -6,3 +6,5 @@ logs/
 temp/
 *.log
 .DS_Store
+models/*.onnx
+models/*.onnx.json

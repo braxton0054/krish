@@ -405,11 +405,14 @@ class WakeWordStreamer {
     });
 
     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    console.log(`[Krish] AudioContext state: ${this.audioContext.state}`);
     if (this.audioContext.state === "suspended") {
       await this.audioContext.resume();
+      console.log(`[Krish] AudioContext resumed: ${this.audioContext.state}`);
     }
     this.sampleRate = this.audioContext.sampleRate;
     this.targetRate = 16000;
+    console.log(`[Krish] Mic sample rate: ${this.sampleRate} Hz, target: ${this.targetRate} Hz`);
     this.source = this.audioContext.createMediaStreamSource(this.stream);
 
     this.analyser = this.audioContext.createAnalyser();
@@ -418,10 +421,10 @@ class WakeWordStreamer {
 
     const FRAME_SIZE = 512;
     this.processor = this.audioContext.createScriptProcessor(FRAME_SIZE, 1, 1);
+    let pcmCount = 0;
     this.processor.onaudioprocess = (event) => {
       if (!this.active) return;
       const input = event.inputBuffer.getChannelData(0);
-      // Downsample to 16kHz
       const step = this.sampleRate / this.targetRate;
       const outLen = Math.floor(FRAME_SIZE / step);
       const pcm = new Int16Array(outLen);
@@ -429,12 +432,17 @@ class WakeWordStreamer {
         const srcIdx = Math.floor(i * step);
         pcm[i] = Math.max(-32768, Math.min(32767, input[srcIdx] * 32768));
       }
-      if (this.onPcm) this.onPcm(pcm.buffer);
+      if (this.onPcm) {
+        this.onPcm(pcm.buffer);
+        pcmCount++;
+        if (pcmCount % 50 === 0) console.log(`[Krish] PCM chunks sent: ${pcmCount}`);
+      }
     };
 
     this.source.connect(this.processor);
     this.processor.connect(this.audioContext.destination);
     this.active = true;
+    console.log("[Krish] WakeWordStreamer active");
   }
 
   stop() {
