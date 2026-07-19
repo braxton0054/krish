@@ -658,6 +658,14 @@ class WSClient {
     return false;
   }
 
+  sendBinary(buf) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(buf);
+      return true;
+    }
+    return false;
+  }
+
   sendAudioChunk(blob) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       blob.arrayBuffer().then((buf) => this.ws.send(buf));
@@ -1010,7 +1018,7 @@ async function startWakeStreaming() {
       sensitivity: parseFloat(cfg.wakeSensitivity || "0.5"),
     });
     await wakeStreamer.start((pcmBuffer) => {
-      ws.send(pcmBuffer);
+      ws.sendBinary(pcmBuffer);
     });
     wakeMode = true;
     micBtn.style.display = "none";
