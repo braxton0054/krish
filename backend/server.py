@@ -283,6 +283,13 @@ class WakeSession:
                 self._kw_ring = self._kw_ring[-self.spotter.min_samples * 2:]
             now = asyncio.get_event_loop().time()
             kw_len = len(self._kw_ring)
+            # Measure RMS of incoming chunk for diagnostics
+            if len(pcm_bytes) >= 2:
+                import struct as _struct
+                vals = _struct.unpack(f"<{len(pcm_bytes)//2}h", pcm_bytes)
+                rms = (sum(v*v for v in vals) / len(vals)) ** 0.5
+                if kw_len % (self.spotter.min_samples) < (self.spotter.check_interval * 16000 * 2):
+                    logger.info(f"KW PCM RMS: {rms:.1f} (silence if ~0)")
             if kw_len >= self.spotter.min_samples \
                and now - self._last_check >= self.spotter.check_interval \
                and not self._processing:

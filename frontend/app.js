@@ -415,25 +415,18 @@ class WakeWordStreamer {
     console.log(`[Krish] Mic sample rate: ${this.sampleRate} Hz, target: ${this.targetRate} Hz`);
     this.source = this.audioContext.createMediaStreamSource(this.stream);
 
-    this.analyser = this.audioContext.createAnalyser();
-    this.analyser.fftSize = 256;
-    this.source.connect(this.analyser);
+    // Load AudioWorklet processor
+    const workletUrl = new URL("wake-processor.js", window.location.href).href;
+    await this.audioContext.audioWorklet.addModule(workletUrl);
+    console.log("[Krish] AudioWorklet module loaded");
 
-    const FRAME_SIZE = 512;
-    this.processor = this.audioContext.createScriptProcessor(FRAME_SIZE, 1, 1);
+    this.processor = new AudioWorkletNode(this.audioContext, "wake-processor");
     let pcmCount = 0;
-    this.processor.onaudioprocess = (event) => {
+    this.processor.port.onmessage = (event) => {
       if (!this.active) return;
-      const input = event.inputBuffer.getChannelData(0);
-      const step = this.sampleRate / this.targetRate;
-      const outLen = Math.floor(FRAME_SIZE / step);
-      const pcm = new Int16Array(outLen);
-      for (let i = 0; i < outLen; i++) {
-        const srcIdx = Math.floor(i * step);
-        pcm[i] = Math.max(-32768, Math.min(32767, input[srcIdx] * 32768));
-      }
+      const pcmBuffer = event.data;
       if (this.onPcm) {
-        this.onPcm(pcm.buffer);
+        this.onPcm(pcmBuffer);
         pcmCount++;
         if (pcmCount % 50 === 0) console.log(`[Krish] PCM chunks sent: ${pcmCount}`);
       }
@@ -442,13 +435,14 @@ class WakeWordStreamer {
     this.source.connect(this.processor);
     this.processor.connect(this.audioContext.destination);
     this.active = true;
-    console.log("[Krish] WakeWordStreamer active");
+    console.log("[Krish] WakeWordStreamer active (AudioWorklet)");
   }
 
   stop() {
     this.active = false;
     if (this.processor) {
       this.processor.disconnect();
+      this.processor.port.onmessage = null;
       this.processor = null;
     }
     if (this.source) {
