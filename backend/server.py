@@ -155,7 +155,7 @@ class StreamSession:
                     if gemini_result["task"]:
                         await self.ws.send_json({
                             "type": "status", "state": "thinking",
-                            "model": "opencode/deepseek-v4-flash-free",
+                            "model": "opencode (default)",
                             "note": "Handing off to OpenCode for task execution",
                         })
                         task = gemini_result["task"]
@@ -386,7 +386,7 @@ class WakeSession:
                     if gemini_result["task"]:
                         await self.ws.send_json({
                             "type": "status", "state": "thinking",
-                            "model": "opencode/deepseek-v4-flash-free",
+                            "model": "opencode (default)",
                         })
                         task = gemini_result["task"]
                         opencode_result = ""

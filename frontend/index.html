@@ -108,15 +108,11 @@
       <span>CONFIGURATION</span>
       <button id="btn-close-settings" class="hud-btn small">×</button>
     </div>
-    <div class="settings-body">
-      <div class="setting-group">
-        <label class="setting-label">FAST MODEL</label>
-        <input type="text" id="cfg-fast-model" class="setting-input">
-      </div>
-      <div class="setting-group">
-        <label class="setting-label">THINKING MODEL</label>
-        <input type="text" id="cfg-thinking-model" class="setting-input">
-      </div>
+      <div class="settings-body">
+        <div class="setting-group">
+          <label class="setting-label">MODEL (auto from OpenCode)</label>
+          <input type="text" id="cfg-fast-model" class="setting-input" value="opencode (default)" readonly>
+        </div>
       <div class="setting-group">
         <label class="setting-label">VOICE</label>
         <select id="cfg-voice" class="setting-select">

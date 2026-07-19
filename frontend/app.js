@@ -1,7 +1,5 @@
 // ─── Configuration ───────────────────────────────────────────────
 const DEFAULTS = {
-  fastModel: "opencode/deepseek-v4-flash-free",
-  thinkingModel: "opencode/deepseek-v4-pro",
   voice: "af_heart",
   wakeWord: false,
   toggleMode: true,
@@ -65,7 +63,6 @@ const btnVisionMode = $("#btn-vision-mode");
 
 // Settings inputs
 const cfgFastModel = $("#cfg-fast-model");
-const cfgThinkingModel = $("#cfg-thinking-model");
 const cfgVoice = $("#cfg-voice");
 const cfgWakeWord = $("#cfg-wake-word");
 const cfgToggleMode = $("#cfg-toggle-mode");
@@ -844,8 +841,7 @@ function saveSettingsToStorage() {
 }
 
 function applySettingsToUI() {
-  cfgFastModel.value = cfg.fastModel;
-  cfgThinkingModel.value = cfg.thinkingModel;
+  cfgFastModel.value = "opencode (default)";
   cfgVoice.value = cfg.voice;
   cfgWakeWord.checked = cfg.wakeWord;
   cfgToggleMode.checked = cfg.toggleMode;
@@ -858,8 +854,6 @@ function applySettingsToUI() {
 }
 
 function applySettingsFromUI() {
-  cfg.fastModel = cfgFastModel.value.trim();
-  cfg.thinkingModel = cfgThinkingModel.value.trim();
   cfg.voice = cfgVoice.value;
   cfg.wakeWord = cfgWakeWord.checked;
   cfg.toggleMode = cfgToggleMode.checked;
@@ -1264,11 +1258,9 @@ function init() {
       visionPanel.style.display = "none";
       ws.sendJson({ type: "vision_config", enabled: false });
     }
-    // Send model config to server for hot-reload
+    // Send config to server for hot-reload
     ws.sendJson({
       type: "config_update",
-      fast_model: cfg.fastModel,
-      thinking_model: cfg.thinkingModel,
       voice: cfg.voice,
       threshold: cfg.threshold,
       wake_sensitivity: parseFloat(cfg.wakeSensitivity || "0.5"),
@@ -1296,8 +1288,6 @@ function init() {
     }
     ws.sendJson({
       type: "config_update",
-      fast_model: DEFAULTS.fastModel,
-      thinking_model: DEFAULTS.thinkingModel,
       voice: DEFAULTS.voice,
       threshold: DEFAULTS.threshold,
       wake_sensitivity: parseFloat(DEFAULTS.wakeSensitivity || "0.5"),
