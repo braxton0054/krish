@@ -53,11 +53,9 @@ class FrameStore:
         self._latest_frame = None
         self._latest_source = None
 
-    def get_frame_path(self) -> str | None:
-        if not self._latest_frame:
-            return None
+    def get_frame_path(self, raw_b64: str) -> str | None:
         try:
-            raw = base64.b64decode(self._latest_frame)
+            raw = base64.b64decode(raw_b64)
             img = Image.open(io.BytesIO(raw))
             if img.mode != "RGB":
                 img = img.convert("RGB")
@@ -72,11 +70,9 @@ class FrameStore:
             logger.warning(f"Failed to process frame: {e}")
             return None
 
-    def get_frame_bytes(self) -> bytes | None:
-        if not self._latest_frame:
-            return None
+    def get_frame_bytes(self, raw_b64: str) -> bytes | None:
         try:
-            return base64.b64decode(self._latest_frame)
+            return base64.b64decode(raw_b64)
         except Exception as e:
             logger.warning(f"Failed to decode frame: {e}")
             return None

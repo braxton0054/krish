@@ -119,9 +119,9 @@ class StreamSession:
         image_path = None
         if self.frame_store.enabled and self.frame_store.has_frame:
             raw_b64, src = self.frame_store.consume_frame()
-            if raw_b64 and self.config.get("vision", {}).get("send_frames_on_demand", True):
-                image_bytes = self.frame_store.get_frame_bytes()
-                image_path = self.frame_store.get_frame_path()
+            if raw_b64:
+                image_bytes = self.frame_store.get_frame_bytes(raw_b64)
+                image_path = self.frame_store.get_frame_path(raw_b64)
                 logger.info(f"Vision frame consumed (source: {src})")
 
         # ─── Route through Gemini? ────────────────────────────────
@@ -343,9 +343,9 @@ class WakeSession:
         image_path = None
         if self.frame_store and self.frame_store.enabled and self.frame_store.has_frame:
             raw_b64, src = self.frame_store.consume_frame()
-            if raw_b64 and self.config.get("vision", {}).get("send_frames_on_demand", True):
-                image_bytes = self.frame_store.get_frame_bytes()
-                image_path = self.frame_store.get_frame_path()
+            if raw_b64:
+                image_bytes = self.frame_store.get_frame_bytes(raw_b64)
+                image_path = self.frame_store.get_frame_path(raw_b64)
                 logger.info(f"Wake: vision frame consumed (source: {src})")
 
         # ─── Route through Gemini / OpenCode ──────────────────────
