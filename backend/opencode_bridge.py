@@ -52,7 +52,15 @@ async def query_opencode(text: str, model_choice: str, config: dict,
                         if event.get("type") == "text" and "part" in event:
                             content = event["part"].get("text", "")
                         elif event.get("type") == "error":
-                            content = event.get("part", {}).get("text", str(event))
+                            err = event.get("part", {}).get("text", "")
+                            # Surface a clean message instead of propagating a
+                            # malformed tool-call crash from the model/agent.
+                            logger.warning(f"OpenCode error event: {err[:200]}")
+                            if not full_response:
+                                full_response.append(
+                                    "I had a small hiccup processing that. Could you rephrase?"
+                                )
+                            continue
                         if not content:
                             content = event.get("text", "")
                         if not content:
