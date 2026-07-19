@@ -17,10 +17,10 @@
   },
   "opencode": {
     "path": "opencode",
-    "fast_model": "opencode/deepseek-v4-flash-free",
-    "thinking_model": "opencode/deepseek-v4-pro",
+    "fast_model": null,
+    "thinking_model": null,
     "fast_variant": null,
-    "thinking_variant": "high",
+    "thinking_variant": null,
     "timeout_ms": 120000
   },
   "wake_word": {

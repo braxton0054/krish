@@ -12,13 +12,15 @@ async def query_opencode(text: str, model_choice: str, config: dict,
     timeout_ms = oc_cfg.get("timeout_ms", 120000)
 
     if model_choice == "thinking":
-        model = oc_cfg.get("thinking_model", "opencode/deepseek-v4-pro")
+        model = oc_cfg.get("thinking_model")
         variant = oc_cfg.get("thinking_variant")
     else:
-        model = oc_cfg.get("fast_model", "opencode/deepseek-v4-flash-free")
+        model = oc_cfg.get("fast_model")
         variant = oc_cfg.get("fast_variant")
 
-    cmd = [opencode_path, "run", "--pure", "--model", model, "--format", "json"]
+    cmd = [opencode_path, "run", "--pure", "--format", "json"]
+    if model:
+        cmd.extend(["--model", model])
     if variant:
         cmd.extend(["--variant", variant])
     if image_path:
