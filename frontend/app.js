@@ -415,26 +415,14 @@ class WakeWordStreamer {
     console.log(`[Krish] Mic sample rate: ${this.sampleRate} Hz, target: ${this.targetRate} Hz`);
     this.source = this.audioContext.createMediaStreamSource(this.stream);
 
-    // Load AudioWorklet processor
-    const workletUrl = new URL("wake-processor.js", window.location.href).href;
-    await this.audioContext.audioWorklet.addModule(workletUrl);
-    console.log("[Krish] AudioWorklet module loaded");
-
-    this.processor = new AudioWorkletNode(this.audioContext, "wake-processor", {
-      numberOfInputs: 1,
-      numberOfOutputs: 1,
-      outputChannelCount: [1],
-    });
     let pcmCount = 0;
     let rmsSum = 0, rmsCount = 0;
-    this.processor.port.onmessage = (event) => {
+    const measureAndSend = (pcmBuffer) => {
       if (!this.active) return;
-      const pcmBuffer = event.data;
       if (this.onPcm) {
         this.onPcm(pcmBuffer);
         pcmCount++;
         if (pcmCount % 50 === 0) console.log(`[Krish] PCM chunks sent: ${pcmCount}`);
-        // Measure RMS for diagnostics
         const int16 = new Int16Array(pcmBuffer);
         let s = 0;
         for (let i = 0; i < int16.length; i++) s += int16[i] * int16[i];
@@ -444,14 +432,46 @@ class WakeWordStreamer {
       }
     };
 
-    // Connect to a zero-gain node to avoid feedback while keeping graph alive
-    const gain = this.audioContext.createGain();
-    gain.gain.value = 0;
-    this.source.connect(this.processor);
-    this.processor.connect(gain);
-    gain.connect(this.audioContext.destination);
+    // Try AudioWorklet first; fall back to ScriptProcessorNode
+    let usingWorklet = false;
+    try {
+      const workletUrl = new URL("wake-processor.js", window.location.href).href;
+      await this.audioContext.audioWorklet.addModule(workletUrl);
+      this.processor = new AudioWorkletNode(this.audioContext, "wake-processor", {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [1],
+      });
+      this.processor.port.onmessage = (event) => measureAndSend(event.data);
+      const gain = this.audioContext.createGain();
+      gain.gain.value = 0;
+      this.source.connect(this.processor);
+      this.processor.connect(gain);
+      gain.connect(this.audioContext.destination);
+      usingWorklet = true;
+      console.log("[Krish] WakeWordStreamer active (AudioWorklet)");
+    } catch (e) {
+      console.warn("[Krish] AudioWorklet failed, using ScriptProcessorNode:", e);
+      const FRAME_SIZE = 512;
+      const step = this.sampleRate / this.targetRate;
+      const outLen = Math.floor(FRAME_SIZE / step);
+      this.processor = this.audioContext.createScriptProcessor(FRAME_SIZE, 1, 1);
+      this.processor.onaudioprocess = (event) => {
+        if (!this.active) return;
+        const input = event.inputBuffer.getChannelData(0);
+        const pcm = new Int16Array(outLen);
+        for (let i = 0; i < outLen; i++) {
+          const srcIdx = Math.floor(i * step);
+          pcm[i] = Math.max(-32768, Math.min(32767, input[srcIdx] * 32768));
+        }
+        measureAndSend(pcm.buffer);
+      };
+      this.source.connect(this.processor);
+      this.processor.connect(this.audioContext.destination);
+      console.log("[Krish] WakeWordStreamer active (ScriptProcessorNode fallback)");
+    }
+
     this.active = true;
-    console.log("[Krish] WakeWordStreamer active (AudioWorklet)");
   }
 
   stop() {
