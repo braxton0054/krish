@@ -1,0 +1,96 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 3000
+  },
+  "stt": {
+    "model_size": "base",
+    "device": "cpu",
+    "compute_type": "int8",
+    "beam_size": 5,
+    "language": null
+  },
+  "tts": {
+    "voice": "af_heart",
+    "speed": 1.0,
+    "lang_code": "a"
+  },
+  "opencode": {
+    "path": "opencode",
+    "fast_model": "opencode/deepseek-v4-flash-free",
+    "thinking_model": "opencode/deepseek-v4-pro",
+    "fast_variant": null,
+    "thinking_variant": "high",
+    "timeout_ms": 120000
+  },
+  "wake_word": {
+    "enabled": true,
+    "detector": "whisper",
+    "keyword": "krish",
+    "sensitivity": 0.5,
+    "manual_ptt_enabled": true,
+    "vad_silence_ms": 1500,
+    "vad_threshold": 0.02,
+    "check_interval_ms": 400,
+    "min_buffer_ms": 1000
+  },
+  "gemini": {
+    "enabled": true,
+    "model": "gemini-2.5-flash",
+    "mode": "gemini_first",
+    "summarize_opencode": true
+  },
+  "memory": {
+    "path": "soul.md",
+    "update_after_session": true,
+    "max_log_entries": 20
+  },
+  "vision": {
+    "enabled": true,
+    "webcam": false,
+    "screen_capture": false,
+    "frame_capture_interval_ms": 500,
+    "send_frames_on_demand": true,
+    "max_width": 640,
+    "jpeg_quality": 70
+  },
+  "classifier": {
+    "type": "heuristic",
+    "fast_patterns": [
+      "^(hello|hi|hey|yo|sup|howdy)",
+      "^(what is|who is|where is|when is)",
+      "how are you",
+      "thank",
+      "^(yes|no|okay|ok|sure|fine)",
+      "^(good morning|good evening|good night)",
+      "^(bye|goodbye|see you)",
+      "what('s| is) your name",
+      "tell me a joke",
+      "what time",
+      "what day",
+      "^(nice|great|awesome)",
+      "^(i am|i'm) (fine|good|great|ok)"
+    ],
+    "thinking_patterns": [
+      "(code|function|class|method|script)",
+      "(debug|fix|bug|error|issue|problem)",
+      "(implement|create|build|write|develop)",
+      "(refactor|redesign|restructure|rewrite)",
+      "(analyze|analyse|explain|compare|evaluate)",
+      "(design|architect|architecture|pattern)",
+      "(optimize|optimise|performance|slow)",
+      "(test|testing|unit test|integration)",
+      "(deploy|deployment|ci|cd|pipeline)",
+      "(database|sql|query|schema|migration)",
+      "(api|endpoint|route|rest|graphql)",
+      "(config|configuration|setup|install)",
+      "how (do|can|should) i",
+      "write a",
+      "create a",
+      "build a",
+      "can you (help|show|tell|explain)",
+      "what('s| is) the (best|difference|way)"
+    ],
+    "complexity_threshold": 0.5
+  }
+}

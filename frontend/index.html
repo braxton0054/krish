@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KRISH — Voice AI Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="scanlines"></div>
+
+  <canvas id="matrix-rain"></canvas>
+  <canvas id="arc-reactor"></canvas>
+
+  <div id="hud-overlay">
+    <header id="hud-topbar">
+      <div class="topbar-left">
+        <span class="logo-text">KRISH</span>
+        <span class="logo-version">v1.0</span>
+      </div>
+      <div class="topbar-center">
+        <span id="status-indicator" class="status-dot idle"></span>
+        <span id="status-label">IDLE</span>
+      </div>
+      <div class="topbar-right">
+        <span id="model-badge" class="model-badge">—</span>
+        <button id="btn-history" class="hud-btn" title="History">HIST</button>
+        <button id="btn-settings" class="hud-btn" title="Settings">CFG</button>
+      </div>
+    </header>
+
+    <main id="main-area">
+      <div id="vision-panel" class="vision-panel">
+        <div class="vision-feed" id="webcam-feed-container">
+          <video id="webcam-feed" autoplay playsinline muted></video>
+          <span class="vision-label">WEBCAM</span>
+        </div>
+        <div class="vision-feed" id="screen-feed-container" style="display:none">
+          <video id="screen-feed" autoplay playsinline muted></video>
+          <span class="vision-label">SCREEN</span>
+        </div>
+        <div class="vision-controls">
+          <button id="btn-toggle-webcam" class="vision-btn">WEBCAM</button>
+          <button id="btn-toggle-screen" class="vision-btn">SCREEN</button>
+          <button id="btn-vision-mode" class="vision-btn active">ON DEMAND</button>
+        </div>
+      </div>
+
+      <div id="transcript-panel">
+        <div id="transcript-user" class="transcript-line user-line">
+          <span class="prompt-glyph">&gt;</span>
+          <span id="user-text" class="glow-text">Awaiting input...</span>
+        </div>
+        <div id="transcript-krish" class="transcript-line krish-line" style="display:none">
+          <span class="prompt-glyph krish-glyph">◆</span>
+          <span id="krish-text" class="glow-text-cyan"></span>
+        </div>
+        <div id="interim-line" class="transcript-line interim-line" style="display:none">
+          <span class="prompt-glyph">~</span>
+          <span id="interim-text" class="dim-text"></span>
+        </div>
+      </div>
+
+      <div id="mic-container">
+        <div id="wake-indicator" class="wake-indicator" style="display:none">
+          <span class="wake-dot"></span>
+          <span class="wake-text">LISTENING FOR ACTIVATION...</span>
+        </div>
+        <button id="mic-btn" class="mic-btn" title="Hold to talk">
+          <div class="mic-ring-1"></div>
+          <div class="mic-ring-2"></div>
+          <div class="mic-ring-3"></div>
+          <div class="mic-inner">
+            <svg viewBox="0 0 24 24" class="mic-icon" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="2" width="6" height="11" rx="3"/>
+              <path d="M5 11a7 7 0 0 0 14 0"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+          </div>
+        </button>
+        <span id="mic-hint" class="mic-hint">HOLD TO TALK</span>
+      </div>
+    </main>
+
+    <footer id="hud-footer">
+      <span class="footer-item">SYS::ONLINE</span>
+      <span class="footer-item" id="footer-model">MODEL:—</span>
+      <span class="footer-item" id="footer-latency">LATENCY:—</span>
+      <span class="footer-item" id="footer-audio">AUDIO:—</span>
+    </footer>
+  </div>
+
+  <aside id="history-panel" class="side-panel">
+    <div class="panel-header">
+      <span>CONVERSATION LOG</span>
+      <button id="btn-close-history" class="hud-btn small">×</button>
+    </div>
+    <div id="history-list"></div>
+    <div class="panel-footer">
+      <button id="btn-clear-history" class="hud-btn small">CLEAR</button>
+    </div>
+  </aside>
+
+  <aside id="settings-panel" class="side-panel right">
+    <div class="panel-header">
+      <span>CONFIGURATION</span>
+      <button id="btn-close-settings" class="hud-btn small">×</button>
+    </div>
+    <div class="settings-body">
+      <div class="setting-group">
+        <label class="setting-label">FAST MODEL</label>
+        <input type="text" id="cfg-fast-model" class="setting-input">
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">THINKING MODEL</label>
+        <input type="text" id="cfg-thinking-model" class="setting-input">
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">VOICE</label>
+        <select id="cfg-voice" class="setting-select">
+          <option value="af_heart">af_heart</option>
+          <option value="af_bella">af_bella</option>
+          <option value="af_nicole">af_nicole</option>
+          <option value="am_adam">am_adam</option>
+          <option value="am_michael">am_michael</option>
+        </select>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">WAKE WORD</label>
+        <div class="toggle-row">
+          <span>Enable "Krish" wake word</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfg-wake-word">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">INPUT MODE</label>
+        <div class="toggle-row">
+          <span>Toggle mode (click on/off)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfg-toggle-mode">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">CONTINUOUS CONVERSATION</label>
+        <div class="toggle-row">
+          <span>Auto-detect silence &amp; auto-relisten</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfg-continuous">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">WAKE WORD SENSITIVITY</label>
+        <select id="cfg-wake-sensitivity" class="setting-select">
+          <option value="0.3">0.3 — Very sensitive</option>
+          <option value="0.5" selected>0.5 — Default</option>
+          <option value="0.7">0.7 — Less sensitive</option>
+        </select>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">VISION</label>
+        <div class="toggle-row">
+          <span>Enable vision (webcam/screen)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfg-vision-enabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row" style="margin-top:6px">
+          <span>Send frames on demand</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfg-vision-on-demand" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">CLASSIFIER THRESHOLD</label>
+        <input type="range" id="cfg-threshold" min="0" max="1" step="0.05" value="0.5">
+        <span id="cfg-threshold-val" class="threshold-val">0.50</span>
+      </div>
+      <div class="settings-actions">
+        <button id="btn-save-settings" class="hud-btn">SAVE</button>
+        <button id="btn-reset-settings" class="hud-btn">RESET</button>
+      </div>
+    </div>
+  </aside>
+
+  <div id="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
