@@ -19,9 +19,9 @@
     "path": "opencode",
     "fast_model": null,
     "thinking_model": null,
-    "fast_variant": null,
+    "fast_variant": "flash",
     "thinking_variant": null,
-    "timeout_ms": 120000
+    "timeout_ms": 60000
   },
   "wake_word": {
     "enabled": true,
